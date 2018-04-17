@@ -63,8 +63,7 @@ void keyPressed(){
 
 void lumiHisto(){
   reset();
-  //int[] hist = new int[256];
-  // Calculate the histogram
+  
   for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         
@@ -85,8 +84,7 @@ void lumiHisto(){
 
 void primaryHistoRed(){
   reset();
-  //int[] hist = new int[256];
-// Calculate the histogram
+  
   for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         
@@ -103,8 +101,7 @@ void primaryHistoRed(){
 
 void primaryHistoGreen(){
     reset();
-  //int[] hist = new int[256];
-// Calculate the histogram
+    
   for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         
@@ -198,12 +195,16 @@ void convertRGBtoCMYK2()
 
 void convertHistoCyan(){
   reset();
-  int[] hist = new int[101];
+  
   // Calculate the histogram
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       int indice = int(C[x][y] * 100);
-      hist[indice]++;
+      float hue = hue(img.get(x, y));
+      float sat = saturation(img.get(x, y));
+      float bri = brightness(img.get(x, y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(indice).add(pixelColor);
     }
   }
   drawHist2(hist); 
@@ -211,12 +212,16 @@ void convertHistoCyan(){
 
 void convertHistoMagenta(){
   reset();
-  int[] hist = new int[101];
+  
   // Calculate the histogram
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       int indice = int(M[x][y] * 100);
-      hist[indice]++;
+      float hue = hue(img.get(x, y));
+      float sat = saturation(img.get(x, y));
+      float bri = brightness(img.get(x, y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(indice).add(pixelColor);
     }
   }
   drawHist2(hist); 
@@ -224,12 +229,16 @@ void convertHistoMagenta(){
 
 void convertHistoYellow(){
   reset();
-  int[] hist = new int[101];
+  
   // Calculate the histogram
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       int indice = int(YY[x][y] * 100);
-      hist[indice]++;
+      float hue = hue(img.get(x, y));
+      float sat = saturation(img.get(x, y));
+      float bri = brightness(img.get(x, y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(indice).add(pixelColor);
     }
   }
   drawHist2(hist); 
@@ -238,23 +247,20 @@ void convertHistoYellow(){
 void convertHistoBlack()
 {
   reset();
-  int[] hist = new int[101];
+  
   // Calculate the histogram
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       int indice = int(K[x][y] * 100);
-      hist[indice]++;
+      float hue = hue(img.get(x, y));
+      float sat = saturation(img.get(x, y));
+      float bri = brightness(img.get(x, y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(indice).add(pixelColor);
     }
   }
   drawHist2(hist); 
 }
-
-//static final Comparator<PVector> VEC_CMP = new Comparator<PVector>() {
-//  @ Override final int compare(final PVector a, final PVector b) {
-//    int cmp;
-//    return Float.compare(a.x, b.x);
-//  }
-//};
 
 void drawHist(ArrayList<ArrayList<PVector>> hist){
   for(int i = 0; i < hist.size(); i++)
@@ -285,26 +291,40 @@ void drawHist(ArrayList<ArrayList<PVector>> hist){
       System.out.println(hist.get(indice).get(j));
       stroke(hist.get(indice).get(j).x, hist.get(indice).get(j).y, hist.get(indice).get(j).z);
       point(i,img.height-j);
-      //rect(i, img.height-j, 1, 1);
-      //line(i, img.height-j, i, img.height-j-1);
     }
   }
 }
 
-void drawHist2(int hist[]){
-  // Find the largest value in the histogram
-  int histMax = max(hist);
+void drawHist2(ArrayList<ArrayList<PVector>> hist){
+  for(int i = 0; i < hist.size(); i++)
+  {
+    Collections.sort(hist.get(i), new Comparator<PVector>() {
+      public int compare(PVector o1, PVector o2) {
+          return Float.compare(o1.x, o2.x);
+      }
+    });
+  }
   
-  stroke(255); //White color for histogram bars
-  // Draw half of the histogram (skip every second value)
+  int histMax = 0;
+  for(int i = 0; i < hist.size(); i++)
+  {
+    if(hist.get(i).size() > histMax) histMax = hist.get(i).size();
+  }
+  
   for (int i = 0; i < img.width; i += 2) {
     // Map i (from 0..img.width) to a location in the histogram (0..255)
     int indice = int(map(i, 0, img.width, 0, 101));
     
     // Convert the histogram value to a location between 
     // the bottom and the top of the picture
-    int y = int(map(hist[indice], 0, histMax, img.height, 0));
-    line(i, img.height, i, y);
+    int y = int(map(hist.get(indice).size(), 0, histMax, 0, img.height));
+    for(int j = 0; j < y; j++)
+    {
+      colorMode(HSB, 360, 100, 100);
+      System.out.println(hist.get(indice).get(j));
+      stroke(hist.get(indice).get(j).x, hist.get(indice).get(j).y, hist.get(indice).get(j).z);
+      point(i,img.height-j);
+    }
   } 
 }
 
