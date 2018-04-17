@@ -78,7 +78,6 @@ void lumiHisto(){
       float bri = brightness(get(x,y));
       PVector pixelColor = new PVector(hue, sat, bri);
       hist.get(lumi).add(pixelColor);
-      //hist[lumi]++; 
     }
   }
   drawHist(hist); 
@@ -310,6 +309,7 @@ void drawHist2(int hist[]){
 }
 
 void reset(){
+  colorMode(RGB, 255, 255, 255);
   for(int i = 0; i < hist.size(); i++)
   {
     hist.get(i).clear();
