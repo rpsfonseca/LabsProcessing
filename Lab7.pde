@@ -1,3 +1,46 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**********************************************************************************************
+===============================================================================================
+IMPORTANT!!!!!!!
+Each histogram is shown by pressing keys:
+
+l for luminosity histogram
+r for red histogram
+g for green histogram
+b for blue histogram
+
+IN ORDER TO SEE THE CMYK ONES, YOU MUST FIRST PRESS p TO CONVERT RGB COLORS TO CMYK!!!!!!
+THEN PRESS:
+
+c for cyan histogram
+m for magenta histogram
+y for yellow histogram
+k for black histogram
+===============================================================================================
+***********************************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
 import java.util.Collections;
 import java.util.Comparator;
 
