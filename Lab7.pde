@@ -5,8 +5,8 @@ float [][] C = new float[208][278];
 float [][] M = new float[208][278];
 float [][] YY = new float[208][278];
 float [][] K = new float[208][278];
-
-ArrayList<ArrayList<Float>> hist = new ArrayList<ArrayList<Float>>(256);
+ 
+ArrayList<ArrayList<PVector>> hist = new ArrayList<ArrayList<PVector>>(256);
 
 
 void setup(){
@@ -15,7 +15,7 @@ void setup(){
   image(img, 0, 0);
   for(int i = 0; i < 256; i++)
   {
-    hist.add(i,new ArrayList<Float>());
+    hist.add(i,new ArrayList<PVector>());
   }
 }
 
@@ -70,7 +70,11 @@ void lumiHisto(){
       b = blue(get(x, y));  
           
       int lumi = int(0.3*r+0.59*g+0.11*b);
-      hist.get(lumi).add(hue(get(x,y)));
+      float hue = hue(get(x,y));
+      float sat = saturation(get(x,y));
+      float bri = brightness(get(x,y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(lumi).add(pixelColor);
       //hist[lumi]++; 
     }
   }
@@ -84,9 +88,12 @@ void primaryHistoRed(){
   for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         
-      int indice = int(red(get(x, y)));
-      hist.get(indice).add(hue(get(x,y)));
-      //hist[indice]++; 
+      int indice = int(red(img.get(x, y)));
+      float hue = hue(img.get(x, y));
+      float sat = saturation(img.get(x, y));
+      float bri = brightness(img.get(x, y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(indice).add(pixelColor);
     }
   }
   drawHist(hist); 
@@ -100,8 +107,11 @@ void primaryHistoGreen(){
       for (int x = 0; x < width; x++) {
         
       int indice = int(green(get(x, y)));
-      hist.get(indice).add(hue(get(x,y)));
-      //hist[indice]++; 
+      float hue = hue(img.get(x, y));
+      float sat = saturation(img.get(x, y));
+      float bri = brightness(img.get(x, y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(indice).add(pixelColor);
     }
   }
   drawHist(hist); 
@@ -115,8 +125,11 @@ void primaryHistoBlue(){
       for (int x = 0; x < width; x++) {
         
       int indice = int(blue(get(x, y)));
-      hist.get(indice).add(hue(get(x,y)));
-      //hist[indice]++; 
+      float hue = hue(img.get(x, y));
+      float sat = saturation(img.get(x, y));
+      float bri = brightness(img.get(x, y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(indice).add(pixelColor);
     }
   }
   drawHist(hist); 
@@ -234,7 +247,7 @@ void convertHistoBlack()
   drawHist2(hist); 
 }
 
-void drawHist(ArrayList<ArrayList<Float>> hist){
+void drawHist(ArrayList<ArrayList<PVector>> hist){
   // Find the largest value in the histogram
   /*int histMax = max(hist);
   
@@ -264,8 +277,12 @@ void drawHist(ArrayList<ArrayList<Float>> hist){
     int y = int(map(hist.get(indice).size(), 0, histMax, 0, img.height));
     for(int j = 0; j < y; j++)
     {
-      stroke(hist.get(indice).get(j));
-      line(i, img.height, i, j);
+    colorMode(HSB, 360, 100, 100);
+      System.out.println(hist.get(indice).get(j));
+      stroke(hist.get(indice).get(j).x, hist.get(indice).get(j).y, hist.get(indice).get(j).z);
+      point(i,img.height-j);
+      //rect(i, img.height-j, 1, 1);
+      //line(i, img.height-j, i, img.height-j-1);
     }
   }
 }
