@@ -1,6 +1,7 @@
 import java.util.Collections;
 import java.util.Comparator;
 
+int contrastval = 0;
 /*PImage img;
 float r, g, b;
 float c, m, Y, k;
@@ -52,8 +53,22 @@ void draw(){
 
 void keyPressed(){
   if (key == 'p') {
-    pixelize(50);
+    pixelize(5);
   } 
+  if (key == 'c') {
+    contrast(contrastval);
+    contrastval = 0;
+  } 
+   if(key == '-')
+  {
+    contrastval -= 1;
+    System.out.println(contrastval);
+  }
+  if(key == '+')
+  {
+    contrastval += 1;
+    System.out.println(contrastval);
+  }
   if(key == '1') {
     reset();
   }
@@ -104,6 +119,36 @@ PVector getColours(int currenti, int currentj, float sizeW, float sizeH){
   finalColor.z /= times;
   return finalColor;
 }
+
+
+void contrast(float value){
+  loadPixels();
+  
+  int loc;
+  float r, g, b;
+  
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      loc = x + y*width;
+      
+      r = red(pixels[loc]);
+      g = green(pixels[loc]);
+      b = blue(pixels[loc]);
+      
+      float factor = 259*(value + 255)/(255*(259 - value));
+      
+      r = (int)(factor*(r - 127) + 127);
+      g = (int)(factor*(g - 127) + 127);
+      b = (int)(factor*(b - 127) + 127);
+
+      // Set the display pixel to the image pixel
+      pixels[loc] = color(r, g, b); 
+    }
+  }
+  updatePixels();
+}
+
+
 
 void reset(){
   clear();
