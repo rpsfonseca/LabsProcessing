@@ -39,7 +39,7 @@ void draw()
 }*/
 
 PImage image;
- 
+
 void setup() {
   size (208,278);
   image=loadImage("PCMLab9.png");
@@ -52,7 +52,7 @@ void draw(){
 
 void keyPressed(){
   if (key == 'p') {
-    pixelize(5);
+    pixelize(50);
   } 
   if(key == '1') {
     reset();
@@ -60,33 +60,49 @@ void keyPressed(){
 }
 
 void pixelize(int size){
-  for ( int i=0; i<width; i+=size ){
-    for ( int j=0; j<height; j+=size){
-     //color c= getColours(i,j, size);
-     color c= image.get(i,j);
-     fill(c);
-     rect(i, j, size, size);
+  // use ratio of height/width...
+  float ratio;
+  if (width < height) {
+    ratio = height/width;
+  }
+  else {
+    ratio = width/height;
+  }
+  
+  // ... to set pixel height
+  int pxH = int(size * ratio);
+  
+  noStroke();
+  
+  for ( int i=0; i<width; i+=size){
+    for ( int j=0; j<height; j+=pxH){
+     PVector c = getColours(i,j, size, pxH);
+     //color c= image.get(i,j);
+     fill(c.x, c.y, c.z);
+     System.out.println(c);
+     rect(i, j, size, pxH);
     }
   }
 }
 
-color getColours(int currenti, int currentj, int size){
-  color finalColor = 0;
-  color c = 0;
+PVector getColours(int currenti, int currentj, float sizeW, float sizeH){
+  PVector finalColor = new PVector();
+  PVector c = new PVector();
   int times = 0;
-  
-  for ( int i=(currenti); i<(currenti + size); i+=1 ){
-    if(i >= 0 && i <= width){
-      for ( int j=(currentj); j<(currentj + size); j+=1){
-        if(j >= 0 && j <= height){
-           c = image.get(i,j);
-           finalColor += c ;
+  colorMode(RGB, 255);
+  for ( int i=currenti; i<currenti + sizeW; i+=1 ){
+      for ( int j=currentj; j<currentj + sizeH; j+=1){
+           c.x = red(image.get(i,j));
+           c.y = green(image.get(i,j));
+           c.z = blue(image.get(i,j));
+           finalColor = finalColor.add(c);
            times += 1;
         }
-      }
-    }
   }
-  return finalColor/times;
+  finalColor.x /= times;
+  finalColor.y /= times;
+  finalColor.z /= times;
+  return finalColor;
 }
 
 void reset(){
