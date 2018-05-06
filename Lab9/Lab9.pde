@@ -90,14 +90,11 @@ void monochrome()
       PVector aux = gradient[index];
       System.out.println(aux + " || " + index);
       pixels[loc] = color(aux.x, aux.y, aux.z);
-      
-     /*fill(aux.x, aux.y, aux.z);
-     rect(x, y, 1, 1);*/
     }
   }
-   updatePixels();
+  updatePixels();
   colorMode(RGB, 255);
-  //pixelize(10);
+  pixelize(5);
 }
 
 void pixelize(int size){
@@ -134,12 +131,12 @@ PVector getColours(int currenti, int currentj, float sizeW, float sizeH){
   colorMode(RGB, 255);
   for ( int i=currenti; i<currenti + sizeW; i+=1 ){
       for ( int j=currentj; j<currentj + sizeH; j+=1){
-           /*c.x = red(get(i,j));
+           c.x = red(get(i,j));
            c.y = green(get(i,j));
-           c.z = blue(get(i,j));*/
-           c.x = red(image.get(i,j));
+           c.z = blue(get(i,j));
+           /*c.x = red(image.get(i,j));
            c.y = green(image.get(i,j));
-           c.z = blue(image.get(i,j));
+           c.z = blue(image.get(i,j));*/
            finalColor = finalColor.add(c);
            times += 1;
         }
