@@ -5,6 +5,8 @@ PImage image;
 int contrastval = 0;
 float r, g, b, brightvalue=1;
 float hue;
+boolean animate = false;
+int pixi, pixj;
 
 void setup() {
   size (208,278);
@@ -19,12 +21,17 @@ void setup() {
 
  
 void draw(){
+  
+  if(animate){
+    animation(25);
+  }
+  
 }
 
 
 void keyPressed(){
   if (key == 'p') {
-    pixelize(5);
+    pixelize(50);
   } 
   if (key == 'c') {
     contrast(contrastval);
@@ -62,6 +69,11 @@ void keyPressed(){
   
   if(key == '1') {
     reset();
+  }
+  
+  if(key == '3')
+  {
+    animate = true;
   }
 }
 
@@ -203,6 +215,38 @@ void bright(float brightvalue){
       }
   }
   updatePixels(); 
+}
+
+void animation(int size){
+  // use ratio of height/width...
+  float ratio;
+  if (width < height) {
+    ratio = height/width;
+  }
+  else {
+    ratio = width/height;
+  }
+  
+  //set pixel height
+  int pxH = int(size * ratio);
+  
+  noStroke();
+   PVector c = getColours(pixi,pixj, size, pxH);
+   //color c= image.get(i,j);
+   fill(c.x, c.y, c.z);
+   System.out.println(c);
+   rect(pixi, pixj, size, pxH);
+   pixj+=pxH;
+   
+   if(pixj >= height){
+     pixj=0;
+     pixi+=size;
+   }
+   if(pixi >= width){
+     pixj=0;
+     pixi=0;
+     animate = false;
+   }
 }
 
 
