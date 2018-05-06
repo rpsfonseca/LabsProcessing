@@ -4,11 +4,17 @@ import java.util.Comparator;
 PImage image;
 int contrastval = 0;
 float r, g, b, brightvalue=1;
+float hue;
 
 void setup() {
   size (208,278);
   image=loadImage("PCMLab9.png");
   image(image, 0, 0);
+  
+  
+  colorMode(HSB, 255);
+  color c = color(2, 255, 255);
+  hue = hue(c);
 }
 
  
@@ -48,11 +54,51 @@ void keyPressed(){
     brightvalue += 0.25;
     System.out.println(brightvalue);
   }
+  
+  if(key == '2')
+  {
+    monochrome();
+  }
+  
   if(key == '1') {
     reset();
   }
 }
 
+void monochrome()
+{
+  image.resize(width, 0);
+  image.filter(GRAY);
+  PVector gradient[] = new PVector[256];
+ 
+  colorMode(HSB, 255);
+  // Creates a gradient of 255 colors between color1 and color2
+  for (int d=0; d < 256; d++) {    
+    float ratio= float(d)*0.00392156862745;
+    gradient[d] = PVector.lerp(new PVector(hue, 255, 0),new PVector(hue, 255, 255),ratio);
+  }
+  
+  noStroke();
+  loadPixels();
+  for (int y = 0; y < image.height; y++) {
+    for (int x = 0; x < image.width; x++) {
+      int loc = x + y*image.width;
+ 
+      // get the brightness
+      float br = brightness(image.pixels[loc]);
+      int index = int(br);
+      PVector aux = gradient[index];
+      System.out.println(aux + " || " + index);
+      pixels[loc] = color(aux.x, aux.y, aux.z);
+      
+     /*fill(aux.x, aux.y, aux.z);
+     rect(x, y, 1, 1);*/
+    }
+  }
+   updatePixels();
+  colorMode(RGB, 255);
+  //pixelize(10);
+}
 
 void pixelize(int size){
   // use ratio of height/width...
@@ -88,6 +134,9 @@ PVector getColours(int currenti, int currentj, float sizeW, float sizeH){
   colorMode(RGB, 255);
   for ( int i=currenti; i<currenti + sizeW; i+=1 ){
       for ( int j=currentj; j<currentj + sizeH; j+=1){
+           /*c.x = red(get(i,j));
+           c.y = green(get(i,j));
+           c.z = blue(get(i,j));*/
            c.x = red(image.get(i,j));
            c.y = green(image.get(i,j));
            c.z = blue(image.get(i,j));
