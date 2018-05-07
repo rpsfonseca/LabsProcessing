@@ -7,6 +7,10 @@ float r, g, b, brightvalue=1;
 float hue;
 boolean animate = false;
 int pixi, pixj;
+ArrayList<ArrayList<PVector>> hist = new ArrayList<ArrayList<PVector>>(256);
+int histMax = 0;
+
+int widthCounter = 0;
 
 void setup() {
   size (208,278);
@@ -15,15 +19,44 @@ void setup() {
   
   
   colorMode(HSB, 255);
-  color c = color(2, 255, 255);
+  color c = color(100, 255, 255);
   hue = hue(c);
+  colorMode(RGB, 255);
+  for(int i = 0; i < 256; i++)
+  {
+    hist.add(i,new ArrayList<PVector>());
+  }
 }
 
  
 void draw(){
   
   if(animate){
-    animation(25);
+    //animation(25);
+    if(widthCounter < image.width)
+    {
+      
+      int indice = int(map(widthCounter, 0, image.width, 0, 255));
+      
+      // Convert the histogram value to a location between 
+      // the bottom and the top of the picture
+      int y = int(map(hist.get(indice).size(), 0, histMax, 0, image.height));
+      
+      for(int j = 0; j < y; j++)
+      {
+        colorMode(HSB, 360, 100, 100);
+        System.out.println(hist.get(indice).get(j));
+        stroke(hist.get(indice).get(j).x, hist.get(indice).get(j).y, hist.get(indice).get(j).z);
+        point(widthCounter,image.height-j);
+      }
+      
+      
+      widthCounter += 2;
+    }
+    else
+    {
+       animate = false; 
+    }
   }
   
 }
@@ -31,7 +64,7 @@ void draw(){
 
 void keyPressed(){
   if (key == 'p') {
-    pixelize(50);
+    pixelize(10);
   } 
   if (key == 'c') {
     contrast(contrastval);
@@ -73,7 +106,8 @@ void keyPressed(){
   
   if(key == '3')
   {
-    animate = true;
+    lumiHisto();
+    
   }
 }
 
@@ -100,13 +134,12 @@ void monochrome()
       float br = brightness(image.pixels[loc]);
       int index = int(br);
       PVector aux = gradient[index];
-      System.out.println(aux + " || " + index);
       pixels[loc] = color(aux.x, aux.y, aux.z);
     }
   }
   updatePixels();
   colorMode(RGB, 255);
-  pixelize(5);
+  pixelize(10);
 }
 
 void pixelize(int size){
@@ -127,9 +160,7 @@ void pixelize(int size){
   for ( int i=0; i<width; i+=size){
     for ( int j=0; j<height; j+=pxH){
      PVector c = getColours(i,j, size, pxH);
-     //color c= image.get(i,j);
      fill(c.x, c.y, c.z);
-     System.out.println(c);
      rect(i, j, size, pxH);
     }
   }
@@ -142,16 +173,19 @@ PVector getColours(int currenti, int currentj, float sizeW, float sizeH){
   int times = 0;
   colorMode(RGB, 255);
   for ( int i=currenti; i<currenti + sizeW; i+=1 ){
-      for ( int j=currentj; j<currentj + sizeH; j+=1){
-           c.x = red(get(i,j));
-           c.y = green(get(i,j));
-           c.z = blue(get(i,j));
-           /*c.x = red(image.get(i,j));
-           c.y = green(image.get(i,j));
-           c.z = blue(image.get(i,j));*/
-           finalColor = finalColor.add(c);
-           times += 1;
+      if(i <= image.width-1)
+      {
+        for ( int j=currentj; j<currentj + sizeH; j+=1){
+          if (j <= image.height-1)
+          {
+             c.x = red(get(i,j));
+             c.y = green(get(i,j));
+             c.z = blue(get(i,j));
+             finalColor = finalColor.add(c);
+             times += 1;
+          }
         }
+      }
   }
   finalColor.x /= times;
   finalColor.y /= times;
@@ -219,7 +253,7 @@ void bright(float brightvalue){
 
 void animation(int size){
   // use ratio of height/width...
-  float ratio;
+  /*float ratio;
   if (width < height) {
     ratio = height/width;
   }
@@ -246,7 +280,57 @@ void animation(int size){
      pixj=0;
      pixi=0;
      animate = false;
-   }
+   }*/
+   lumiHisto();
+   //animate=false;
+}
+
+void lumiHisto(){
+  reset();
+  //int[] hist = new int[256];
+  // Calculate the histogram
+  for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        
+      r = red(get(x, y));
+      g = green(get(x, y));
+      b = blue(get(x, y));  
+          
+      int lumi = int(0.3*r+0.59*g+0.11*b);
+      float hue = hue(get(x,y));
+      float sat = saturation(get(x,y));
+      float bri = brightness(get(x,y));
+      PVector pixelColor = new PVector(hue, sat, bri);
+      hist.get(lumi).add(pixelColor);
+      //hist[lumi]++; 
+    }
+  }
+  for(int i = 0; i < hist.size(); i++)
+  {
+    if(hist.get(i).size() > histMax) histMax = hist.get(i).size();
+  }
+  
+  System.out.println(histMax);
+  animate = true;
+  //drawHist(hist); 
+}
+
+void drawHist(ArrayList<ArrayList<PVector>> hist){
+  
+  for (int i = 0; i < image.width; i += 2) {
+    int indice = int(map(i, 0, image.width, 0, 255));
+    
+    // Convert the histogram value to a location between 
+    // the bottom and the top of the picture
+    int y = int(map(hist.get(indice).size(), 0, histMax, 0, image.height));
+    for(int j = 0; j < y; j++)
+    {
+      colorMode(HSB, 360, 100, 100);
+      System.out.println(hist.get(indice).get(j));
+      stroke(hist.get(indice).get(j).x, hist.get(indice).get(j).y, hist.get(indice).get(j).z);
+      point(i,image.height-j);
+    }
+  }
 }
 
 
