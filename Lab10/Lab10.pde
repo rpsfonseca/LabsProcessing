@@ -7,8 +7,13 @@ int threshold = 500000;
 int[] hist1 = new int[256];
 int[] hist2 = new int[256];
 
+
 boolean inSmooth = false;
 float cummulativeDifference = 0;
+
+int[] framesHistoDif = new int[1000];
+
+int j = 0;
 
 PrintWriter output;
 
@@ -55,8 +60,9 @@ void movieEvent(Movie m)
       break; 
     case EXERCISE3:
       transition2();
-      break; 
-     
+      break;
+    case EXERCISE4:
+      break;
     default:
       break;
   }
@@ -64,8 +70,9 @@ void movieEvent(Movie m)
 
 void keyPressed()
 {
+  createList();
   output.flush(); // Writes the remaining data to the file
-  output.close(); // Finishes the file
+  output.close(); // Finishes the file  
   exit(); // Stops the program
 }
 
@@ -155,6 +162,11 @@ boolean histoDifference(int[] histA, int[] histB, float threshold, int method)
         break;
     }
   }
+  
+  //Save histogram difference
+  framesHistoDif[j] = totalDif;
+  j++;
+  
   System.out.println(totalDif);
   if(method == 2)
   {
@@ -220,6 +232,7 @@ float chiSquared(float valA, float valB)
   return (valA-valB)*(valA-valB)/valA;
 }
 
+<<<<<<< HEAD
 float intersection(float valA, float valB)
 {
   return min(valA, valB);
@@ -230,4 +243,16 @@ void outputSaving(PImage image)
   String frameName = "outputImage_"+ currentImgCount++ +".jpg";
   image.save(frameName);
   output.println(frameName + " -> " + lastTime);
+=======
+void createList(){
+  output = createWriter("histo_differences.txt"); 
+  
+  output.println("Frame   Histogram_Diff   Threshold1   Threshold2");
+  
+  for(int i = 0; i<515; i++){
+       output.println(i + "   " + framesHistoDif[i]);
+       System.out.println(i);
+        System.out.println(framesHistoDif[i]);
+  }
+>>>>>>> 8435c5373cb48e64ac1783a3214eeb03219bd3e1
 }
