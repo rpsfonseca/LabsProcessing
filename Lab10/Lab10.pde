@@ -3,9 +3,9 @@ Movie myMovie;
 float lastTime = 0.0;
 int currentImgCount = 1;
 float sampleRate = 3.0;
+int threshold = 900000;
 int[] hist1 = new int[256];
 int[] hist2 = new int[256];
-int[] hist3 = new int[256];
 
 PrintWriter output;
 
@@ -48,10 +48,10 @@ void movieEvent(Movie m)
       stroboscopic();
       break;
     case EXERCISE2:
-      transition();
+      transition(threshold);
       break; 
     case EXERCISE3:
-      transition();
+      transition(threshold);
       break; 
      
     default:
@@ -84,24 +84,21 @@ void stroboscopic()
   }
 }
 
-void transition()
+void transition(int threshold)
 {
-  if(myMovie.time() - lastTime >= sampleRate)
+  PImage newImage = createImage(960, 540, RGB);
+  newImage = myMovie.get();
+  
+  hist2 = getHisto(newImage);    
+  
+  if(histoDifference(hist1, hist2, threshold))
   {
-    lastTime = myMovie.time();
-    PImage newImage = createImage(960, 540, RGB);
-    newImage = myMovie.get();
-    
-    hist2 = getHisto(newImage);    
-    
-    if(histoDifference(hist1, hist2, 50)){
-      String frameName = "outputImage_"+ currentImgCount++ +".jpg";
-      newImage.save(frameName);
-      output.println(frameName + " -> " + lastTime);
-    }
-    
-    hist1 = hist2; //Update Histograms
+    String frameName = "outputImage_"+ currentImgCount++ +".jpg";
+    newImage.save(frameName);
+    output.println(frameName + " -> " + lastTime);
   }
+  
+  hist1 = hist2; //Update Histograms
 }
 
 void transition2()
@@ -126,7 +123,7 @@ int[] getHisto(PImage img){
   // Calculate the histogram
   for (int i = 0; i < img.width; i++) {
     for (int j = 0; j < img.height; j++) {
-      int bright = int(brightness(get(i, j)));
+      int bright = int(brightness(img.get(i, j)));
       hist[bright]++; 
     }
   }
@@ -137,15 +134,22 @@ boolean histoDifference(int[] histA, int[] histB, int threshold){
   
   int totalDif = 0;
   
-  for(int i=0;i<256;i++){
-    hist3[i] = histB[i] - histA[i];
-    totalDif += hist3[i];  
+  for(int i=0;i<256;i++)
+  {
+    /*hist3[i] = Math.abs(histB[i] - histA[i]);
+    totalDif += hist3[i];*/
+    totalDif += chiSquared(histA[i], histB[i]);
   }
-  
+  System.out.println(totalDif);
   if(totalDif > threshold) return true;
   else return false;
 }
 
 void twinComparison(int[] histA, int[] histB){
   //TODO
+}
+
+float chiSquared(float valA, float valB)
+{
+  return (valA-valB)*(valA-valB)/valA;
 }
