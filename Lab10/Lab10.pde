@@ -3,9 +3,12 @@ Movie myMovie;
 float lastTime = 0.0;
 int currentImgCount = 1;
 float sampleRate = 3.0;
-int threshold = 900000;
+int threshold = 500000;
 int[] hist1 = new int[256];
 int[] hist2 = new int[256];
+
+boolean inSmooth = false;
+float cummulativeDifference = 0;
 
 PrintWriter output;
 
@@ -26,7 +29,7 @@ void setup() {
   myMovie.play();
   
   hist1 = getHisto(myMovie.get());
-  currentExercise = Exercise.EXERCISE2;
+  currentExercise = Exercise.EXERCISE3;
   
   // Create a new file in the sketch directory
   output = createWriter("time_indexes.txt"); 
@@ -48,10 +51,10 @@ void movieEvent(Movie m)
       stroboscopic();
       break;
     case EXERCISE2:
-      transition(threshold);
+      transition(threshold); // 900000
       break; 
     case EXERCISE3:
-      transition(threshold);
+      transition2();
       break; 
      
     default:
@@ -66,7 +69,8 @@ void keyPressed()
   exit(); // Stops the program
 }
 
-void reset(){
+void reset()
+{
   clear();
   setup();
 }
@@ -84,18 +88,17 @@ void stroboscopic()
   }
 }
 
-void transition(int threshold)
+void transition(float threshold)
 {
   PImage newImage = createImage(960, 540, RGB);
   newImage = myMovie.get();
   
   hist2 = getHisto(newImage);    
   
-  if(histoDifference(hist1, hist2, threshold))
+  if(histoDifference(hist1, hist2, threshold, 1))
   {
-    String frameName = "outputImage_"+ currentImgCount++ +".jpg";
-    newImage.save(frameName);
-    output.println(frameName + " -> " + lastTime);
+    lastTime = myMovie.time();
+    outputSaving(newImage);
   }
   
   hist1 = hist2; //Update Histograms
@@ -103,18 +106,15 @@ void transition(int threshold)
 
 void transition2()
 {
-  if(myMovie.time() - lastTime >= sampleRate)
-  {
     lastTime = myMovie.time();
     PImage newImage = createImage(960, 540, RGB);
     newImage = myMovie.get();
     
     hist2 = getHisto(newImage);    
     
-    twinComparison(hist1, hist2);
+    twinComparison(hist1, hist2, 10000, threshold);
     
     hist1 = hist2; //Update Histograms
-  }
 }
 
 int[] getHisto(PImage img){
@@ -130,26 +130,104 @@ int[] getHisto(PImage img){
   return hist;
 }
 
-boolean histoDifference(int[] histA, int[] histB, int threshold){
-  
-  int totalDif = 0;
+boolean histoDifference(int[] histA, int[] histB, float threshold, int method)
+{  
+  float sumA = 0;
+  float sumB = 0;
+  double totalDif = 0;
   
   for(int i=0;i<256;i++)
   {
-    /*hist3[i] = Math.abs(histB[i] - histA[i]);
-    totalDif += hist3[i];*/
-    totalDif += chiSquared(histA[i], histB[i]);
+    switch(method)
+    {
+      case 0:
+        totalDif += Math.abs(histA[i] - histB[i]);
+        break;
+      case 1:
+        if(histA[i] != 0)
+        {
+          totalDif += chiSquared(histA[i], histB[i]);
+        }
+        //System.out.println("A: " + histA[i] + " || B: " + histB[i]);
+        break;
+      case 2:
+        totalDif += intersection(histA[i], histB[i]);
+        break;
+    }
   }
   System.out.println(totalDif);
-  if(totalDif > threshold) return true;
+  if(method == 2)
+  {
+    if(totalDif < threshold) return true;
+    else return false;
+  }
+  
+  if(totalDif > threshold)
+  {
+    
+    return true;
+  }
   else return false;
 }
 
-void twinComparison(int[] histA, int[] histB){
-  //TODO
+void twinComparison(int[] histA, int[] histB, float lowerThres, float higherThres)
+{
+  if(!inSmooth && histoDifference(histA, histB, higherThres, 1))
+  {
+    return;
+  }
+  
+  float diff = cummulativeDiff(histA, histB, lowerThres);
+  if(diff != 0.0f)
+  {
+    inSmooth = true;
+    cummulativeDifference += diff;
+  }
+  else
+  {
+    System.out.println(cummulativeDifference);
+    if(cummulativeDifference > higherThres)
+    {
+      PImage newImage = createImage(960, 540, RGB);
+      newImage = myMovie.get();
+      outputSaving(newImage); 
+    }
+    inSmooth = false;
+    cummulativeDifference = 0.0f;
+  }
+}
+
+float cummulativeDiff(int[] histA, int[] histB, float threshold)
+{
+  float totalDif = 0;
+  
+  for(int i=0;i<256;i++)
+  {
+    if(histA[i] != 0.0f)
+    {
+      totalDif += chiSquared(histA[i], histB[i]);
+    }
+       
+  }
+  System.out.println(totalDif);
+  
+  if(totalDif > threshold) return totalDif;
+  else return 0.0f;
 }
 
 float chiSquared(float valA, float valB)
 {
   return (valA-valB)*(valA-valB)/valA;
+}
+
+float intersection(float valA, float valB)
+{
+  return min(valA, valB);
+}
+
+void outputSaving(PImage image)
+{
+  String frameName = "outputImage_"+ currentImgCount++ +".jpg";
+  image.save(frameName);
+  output.println(frameName + " -> " + lastTime);
 }
