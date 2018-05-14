@@ -7,6 +7,10 @@ int threshold = 900000;
 int[] hist1 = new int[256];
 int[] hist2 = new int[256];
 
+int[] framesHistoDif = new int[1000];
+
+int j = 0;
+
 PrintWriter output;
 
 enum Exercise
@@ -61,8 +65,9 @@ void movieEvent(Movie m)
 
 void keyPressed()
 {
+  createList();
   output.flush(); // Writes the remaining data to the file
-  output.close(); // Finishes the file
+  output.close(); // Finishes the file  
   exit(); // Stops the program
 }
 
@@ -140,6 +145,11 @@ boolean histoDifference(int[] histA, int[] histB, int threshold){
     totalDif += hist3[i];*/
     totalDif += chiSquared(histA[i], histB[i]);
   }
+  
+  //Save histogram difference
+  framesHistoDif[j] = totalDif;
+  j++;
+  
   System.out.println(totalDif);
   if(totalDif > threshold) return true;
   else return false;
@@ -152,4 +162,16 @@ void twinComparison(int[] histA, int[] histB){
 float chiSquared(float valA, float valB)
 {
   return (valA-valB)*(valA-valB)/valA;
+}
+
+void createList(){
+  output = createWriter("histo_differences.txt"); 
+  
+  output.println("Frame   Histogram_Diff   Threshold1   Threshold2");
+  
+  for(int i = 0; i<515; i++){
+       output.println(i + "   " + framesHistoDif[i]);
+       System.out.println(i);
+        System.out.println(framesHistoDif[i]);
+  }
 }
