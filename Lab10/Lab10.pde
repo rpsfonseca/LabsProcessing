@@ -5,6 +5,7 @@ int currentImgCount = 1;
 float sampleRate = 3.0;
 int[] hist1 = new int[256];
 int[] hist2 = new int[256];
+int[] hist3 = new int[256];
 
 PrintWriter output;
 
@@ -25,7 +26,7 @@ void setup() {
   myMovie.play();
   
   hist1 = getHisto(myMovie.get());
-  currentExercise = Exercise.EXERCISE1;
+  currentExercise = Exercise.EXERCISE2;
   
   // Create a new file in the sketch directory
   output = createWriter("time_indexes.txt"); 
@@ -93,7 +94,11 @@ void transition()
     
     hist2 = getHisto(newImage);    
     
-    histoDifference(hist1, hist2);
+    if(histoDifference(hist1, hist2, 50)){
+      String frameName = "outputImage_"+ currentImgCount++ +".jpg";
+      newImage.save(frameName);
+      output.println(frameName + " -> " + lastTime);
+    }
     
     hist1 = hist2; //Update Histograms
   }
@@ -128,8 +133,17 @@ int[] getHisto(PImage img){
   return hist;
 }
 
-void histoDifference(int[] histA, int[] histB){
-  //TODO
+boolean histoDifference(int[] histA, int[] histB, int threshold){
+  
+  int totalDif = 0;
+  
+  for(int i=0;i<256;i++){
+    hist3[i] = histB[i] - histA[i];
+    totalDif += hist3[i];  
+  }
+  
+  if(totalDif > threshold) return true;
+  else return false;
 }
 
 void twinComparison(int[] histA, int[] histB){
