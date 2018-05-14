@@ -3,6 +3,8 @@ Movie myMovie;
 float lastTime = 0.0;
 int currentImgCount = 1;
 float sampleRate = 3.0;
+int[] hist1 = new int[256];
+int[] hist2 = new int[256];
 
 PrintWriter output;
 
@@ -22,6 +24,7 @@ void setup() {
   myMovie = new Movie(this, "PCMLab10.mov");
   myMovie.play();
   
+  hist1 = getHisto(myMovie.get());
   currentExercise = Exercise.EXERCISE1;
   
   // Create a new file in the sketch directory
@@ -43,6 +46,13 @@ void movieEvent(Movie m)
     case EXERCISE1:
       stroboscopic();
       break;
+    case EXERCISE2:
+      transition();
+      break; 
+    case EXERCISE3:
+      transition();
+      break; 
+     
     default:
       break;
   }
@@ -71,4 +81,57 @@ void stroboscopic()
     newImage.save(frameName);
     output.println(frameName + " -> " + lastTime);
   }
+}
+
+void transition()
+{
+  if(myMovie.time() - lastTime >= sampleRate)
+  {
+    lastTime = myMovie.time();
+    PImage newImage = createImage(960, 540, RGB);
+    newImage = myMovie.get();
+    
+    hist2 = getHisto(newImage);    
+    
+    histoDifference(hist1, hist2);
+    
+    hist1 = hist2; //Update Histograms
+  }
+}
+
+void transition2()
+{
+  if(myMovie.time() - lastTime >= sampleRate)
+  {
+    lastTime = myMovie.time();
+    PImage newImage = createImage(960, 540, RGB);
+    newImage = myMovie.get();
+    
+    hist2 = getHisto(newImage);    
+    
+    twinComparison(hist1, hist2);
+    
+    hist1 = hist2; //Update Histograms
+  }
+}
+
+int[] getHisto(PImage img){
+  int[] hist = new int[256];
+  
+  // Calculate the histogram
+  for (int i = 0; i < img.width; i++) {
+    for (int j = 0; j < img.height; j++) {
+      int bright = int(brightness(get(i, j)));
+      hist[bright]++; 
+    }
+  }
+  return hist;
+}
+
+void histoDifference(int[] histA, int[] histB){
+  //TODO
+}
+
+void twinComparison(int[] histA, int[] histB){
+  //TODO
 }
