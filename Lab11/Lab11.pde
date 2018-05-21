@@ -11,6 +11,8 @@ int currentAlpha = 255;
 boolean fadeInNotPlaying = true;
 boolean fadeOutNotPlaying = true;
 boolean firstAnimation = true;
+boolean endFirstClip = false;
+boolean endSecondClip = false;
 
 enum Exercise
 {
@@ -36,6 +38,7 @@ void setup() {
       break;
     case EXERCISE2:
       myMovie = new Movie(this, "PCMLab10.mov");
+      myMovie2 = new Movie(this, "PCMLab11-2.mov");
       mmask = new PImage(960,540);
       break; 
     case EXERCISE3:
@@ -74,6 +77,15 @@ void draw()
     case EXERCISE1:
       break;
     case EXERCISE2:
+      if(endFirstClip)
+      {
+         myMovie.stop();
+         myMovie2.play();
+      }
+      if(endSecondClip)
+      {
+         myMovie2.stop(); 
+      }
       if (mimg != null)
       {
         if(!fadeInNotPlaying)
@@ -112,17 +124,25 @@ void draw()
 // Called every time a new frame is available to read
 void movieEvent(Movie m)
 {
-  m.read();
   switch(currentExercise)
   {
     case EXERCISE1:
       break;
     case EXERCISE2:
+      if(m == myMovie)
+      {
+        myMovie.read();
+      }
+      if(m == myMovie2)
+      {
+        myMovie2.read();
+      }
       fade(m);
       break; 
     case EXERCISE3:
       break;
     case EXERCISE4:
+      m.read();
       chromaKey(m);
       break;
     default:
@@ -133,8 +153,7 @@ void movieEvent(Movie m)
 void fade(Movie m)
 {
    mimg = m.get();
-   
-      
+   System.out.println(mimg);
    if (firstAnimation && (m.duration() - m.time()) <= fadeDuration && currentAlpha > 0)
    {
       fadeInNotPlaying = false;
@@ -148,17 +167,17 @@ void fade(Movie m)
       currentAlpha-=5;
       System.out.println(m.time());
    }
-   else if(!fadeInNotPlaying && (currentAlpha <= 0 || m.duration() == m.time()))
+   else if(!fadeInNotPlaying && currentAlpha <= 0)
    {
-      myMovie.stop();
       currentAlpha = 0;
       fadeInNotPlaying = true;
       firstAnimation = false;
-      myMovie = new Movie(this, "PCMLab11-1.mov");
-      myMovie.play();
+      endFirstClip = true;
+      mimg = null;
+      mmask = new PImage(960,540);
    }
    
-   if (!firstAnimation && m.time() <= fadeDuration && currentAlpha < 254)
+   if (!firstAnimation && myMovie2.time() <= fadeDuration && currentAlpha < 254)
    {
       fadeOutNotPlaying = false;
       for (int x = 0; x < 960; x++)
@@ -170,10 +189,10 @@ void fade(Movie m)
       }
       currentAlpha+=5;
    }
-   else if(!fadeOutNotPlaying && currentAlpha <= 254)
+   else if(!fadeOutNotPlaying && currentAlpha >= 254)
    {
-      myMovie.stop();
       fadeOutNotPlaying = true;
+      endSecondClip = true;
    }
 }
 
