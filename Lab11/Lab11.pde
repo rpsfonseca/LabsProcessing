@@ -4,13 +4,15 @@ PImage img, mimg;
 PImage mmask;
 float threshold = 254;
 
-float fadeDuration = 3.0;
+float fadeDuration = 10.0;
 
 int currentAlpha = 255;
+int xtemp = 0;
 
 boolean fadeInNotPlaying = true;
 boolean fadeOutNotPlaying = true;
 boolean firstAnimation = true;
+boolean startWipe = false;
 
 enum Exercise
 {
@@ -29,10 +31,12 @@ void settings(){
  
 void setup() {
   background(0);
-  currentExercise = Exercise.EXERCISE2;
+  currentExercise = Exercise.EXERCISE1;
   switch(currentExercise)
   {
     case EXERCISE1:
+      myMovie = new Movie(this, "PCMLab10.mov");
+      mmask = new PImage(960,540);
       break;
     case EXERCISE2:
       myMovie = new Movie(this, "PCMLab10.mov");
@@ -65,6 +69,11 @@ void keyPressed()
      threshold -= 1;
      System.out.println(threshold);
    }
+   if(key == '1')
+   {
+     startWipe = true;
+     System.out.println(startWipe);
+   }
 }
  
 void draw()
@@ -72,6 +81,25 @@ void draw()
   switch(currentExercise)
   {
     case EXERCISE1:
+      if (mimg != null)
+      {
+        if(!fadeInNotPlaying)
+        {
+          mimg.mask(mmask);
+          image(img, 0, 0);
+          image(mimg, 0, 0);
+        }
+        else if(!fadeOutNotPlaying)
+        {
+          mimg.mask(mmask);
+          image(img, 0, 0);
+          image(mimg, 0, 0);
+        }
+        else
+        {
+          image(mimg, 0, 0);
+        }
+      }
       break;
     case EXERCISE2:
       if (mimg != null)
@@ -116,6 +144,7 @@ void movieEvent(Movie m)
   switch(currentExercise)
   {
     case EXERCISE1:
+      wipe(m);
       break;
     case EXERCISE2:
       fade(m);
@@ -128,6 +157,31 @@ void movieEvent(Movie m)
     default:
       break;
   }
+}
+
+void wipe(Movie m){
+     mimg = m.get();
+         
+   if (firstAnimation && (m.duration() - m.time()) <= fadeDuration && currentAlpha > 0)
+   {
+      fadeInNotPlaying = false;
+      //for (int x = 0; x < 960; x++)
+      //{
+        for (int y = 0; y < 540; y++)
+        {
+          mmask.set(xtemp,y, currentAlpha);
+        }
+      //}
+      currentAlpha-=5;
+      
+      if(currentAlpha<=0){
+        currentAlpha=255;
+        xtemp++;
+      }
+      
+      System.out.println(m.time());
+      System.out.println(currentAlpha);
+   }
 }
 
 void fade(Movie m)
@@ -147,9 +201,11 @@ void fade(Movie m)
       }
       currentAlpha-=5;
       System.out.println(m.time());
+      System.out.println(currentAlpha);
    }
-   else if(!fadeInNotPlaying && (currentAlpha <= 0 || m.duration() == m.time()))
+   if(!fadeInNotPlaying && (currentAlpha <= 0 || m.duration() == m.time()))
    {
+      System.out.println("oi");
       myMovie.stop();
       currentAlpha = 0;
       fadeInNotPlaying = true;
