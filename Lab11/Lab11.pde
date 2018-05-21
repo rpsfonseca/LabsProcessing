@@ -4,9 +4,9 @@ PImage img, mimg;
 PImage mmask;
 float threshold = 254;
 
-float fadeDuration = 3.0;
+float fadeDuration = 5.0;
 
-int currentAlpha = 255;
+int currentAlpha = 0;
 int xtemp = 0;
 
 boolean fadeInNotPlaying = true;
@@ -34,12 +34,19 @@ void settings(){
  
 void setup() {
   background(0);
-  currentExercise = Exercise.EXERCISE2;
+  currentExercise = Exercise.EXERCISE1;
   switch(currentExercise)
   {
     case EXERCISE1:
       myMovie = new Movie(this, "PCMLab10.mov");
       mmask = new PImage(960,540);
+      for (int x = 0; x < 960; x++)
+      {
+        for (int y = 0; y < 540; y++)
+        {
+          mmask.set(x,y, 255);
+        }
+      }
       break;
     case EXERCISE2:
       myMovie = new Movie(this, "PCMLab10.mov");
@@ -91,7 +98,7 @@ void draw()
         {
           mimg.mask(mmask);
           image(img, 0, 0);
-          image(mimg, 0, 0);
+          image(mimg, xtemp+8, 0);
         }
         else if(!fadeOutNotPlaying)
         {
@@ -156,6 +163,7 @@ void movieEvent(Movie m)
   switch(currentExercise)
   {
     case EXERCISE1:
+      m.read();
       wipe(m);
       break;
     case EXERCISE2:
@@ -183,25 +191,18 @@ void movieEvent(Movie m)
 void wipe(Movie m){
      mimg = m.get();
          
-   if (firstAnimation && (m.duration() - m.time()) <= fadeDuration && currentAlpha > 0)
+   if (firstAnimation && (m.duration() - m.time()) <= fadeDuration)
    {
       fadeInNotPlaying = false;
-      //for (int x = 0; x < 960; x++)
-      //{
+      for (int x = xtemp; x < xtemp+8; x++)
+      {
         for (int y = 0; y < 540; y++)
         {
-          mmask.set(xtemp,y, currentAlpha);
+          
+          mmask.set(x, y, 255);
         }
-      //}
-      currentAlpha-=5;
-      
-      if(currentAlpha<=0){
-        currentAlpha=255;
-        xtemp++;
       }
-      
-      System.out.println(m.time());
-      System.out.println(currentAlpha);
+      xtemp+=8;
    }
 }
 
