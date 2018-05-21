@@ -1,20 +1,56 @@
 import processing.video.*;
-Movie myMovie;
+Movie myMovie, myMovie2;
 PImage img, mimg;
 PImage mmask;
 float threshold = 254;
+
+float fadeDuration = 3.0;
+
+int currentAlpha = 255;
+
+boolean fadeInNotPlaying = true;
+boolean fadeOutNotPlaying = true;
+boolean firstAnimation = true;
+
+enum Exercise
+{
+  EXERCISE1,
+  EXERCISE2,
+  EXERCISE3,
+  EXERCISE4
+}
+
+Exercise currentExercise;
  
 void settings(){
-  img = loadImage("background.png");
-  size(img.width, img.height);
+      img = loadImage("black.png");
+      size(960, 540);
 }
  
 void setup() {
-  size(960, 540);
   background(0);
-  myMovie = new Movie(this, "PCMLab11-2.mov");
+  currentExercise = Exercise.EXERCISE2;
+  switch(currentExercise)
+  {
+    case EXERCISE1:
+      break;
+    case EXERCISE2:
+      myMovie = new Movie(this, "PCMLab10.mov");
+      mmask = new PImage(960,540);
+      break; 
+    case EXERCISE3:
+      break;
+    case EXERCISE4:
+      img = loadImage("background.png");
+      size(960, 540);
+      myMovie = new Movie(this, "PCMLab11-2.mov");
+      mmask = new PImage(960,540);
+      break;
+    default:
+      break;
+  }
   myMovie.play();
-  mmask = new PImage(960,540);
+  
 }
 
 void keyPressed()
@@ -33,12 +69,43 @@ void keyPressed()
  
 void draw()
 {
-  //
-  if (mimg != null)
+  switch(currentExercise)
   {
-    mimg.mask(mmask);
-    image(img, 0, 0);
-    image(mimg, 0, 0);
+    case EXERCISE1:
+      break;
+    case EXERCISE2:
+      if (mimg != null)
+      {
+        if(!fadeInNotPlaying)
+        {
+          mimg.mask(mmask);
+          image(img, 0, 0);
+          image(mimg, 0, 0);
+        }
+        else if(!fadeOutNotPlaying)
+        {
+          mimg.mask(mmask);
+          image(img, 0, 0);
+          image(mimg, 0, 0);
+        }
+        else
+        {
+          image(mimg, 0, 0);
+        }
+      }
+      break; 
+    case EXERCISE3:
+      break;
+    case EXERCISE4: 
+      if (mimg != null)
+      {
+        mimg.mask(mmask);
+        image(img, 0, 0);
+        image(mimg, 0, 0);
+      }
+      break;
+    default:
+      break;
   }
 }
 
@@ -46,26 +113,87 @@ void draw()
 void movieEvent(Movie m)
 {
   m.read();
-  chromaKey(m);
+  switch(currentExercise)
+  {
+    case EXERCISE1:
+      break;
+    case EXERCISE2:
+      fade(m);
+      break; 
+    case EXERCISE3:
+      break;
+    case EXERCISE4:
+      chromaKey(m);
+      break;
+    default:
+      break;
+  }
+}
+
+void fade(Movie m)
+{
+   mimg = m.get();
+   
+      
+   if (firstAnimation && (m.duration() - m.time()) <= fadeDuration && currentAlpha > 0)
+   {
+      fadeInNotPlaying = false;
+      for (int x = 0; x < 960; x++)
+      {
+        for (int y = 0; y < 540; y++)
+        {
+          mmask.set(x,y, currentAlpha);
+        }
+      }
+      currentAlpha-=5;
+      System.out.println(m.time());
+   }
+   else if(!fadeInNotPlaying && (currentAlpha <= 0 || m.duration() == m.time()))
+   {
+      myMovie.stop();
+      currentAlpha = 0;
+      fadeInNotPlaying = true;
+      firstAnimation = false;
+      myMovie = new Movie(this, "PCMLab11-1.mov");
+      myMovie.play();
+   }
+   
+   if (!firstAnimation && m.time() <= fadeDuration && currentAlpha < 254)
+   {
+      fadeOutNotPlaying = false;
+      for (int x = 0; x < 960; x++)
+      {
+        for (int y = 0; y < 540; y++)
+        {
+          mmask.set(x,y, currentAlpha);
+        }
+      }
+      currentAlpha+=5;
+   }
+   else if(!fadeOutNotPlaying && currentAlpha <= 254)
+   {
+      myMovie.stop();
+      fadeOutNotPlaying = true;
+   }
 }
 
 void chromaKey(Movie m)
 {
-  mimg=m.get();
+  mimg = m.get();
   for (int x = 0; x < 960; x++)
   {
      for (int y = 0; y < 540; y++)
      {
-          int green = (mimg.get(x,y) >> 8) & 0xff;
-          
-          if (green > threshold)
-          {
-            mmask.set(x,y,0);
-          }
-          else
-          {
-            mmask.set(x,y,255);
-          }
+        int green = (mimg.get(x,y) >> 8) & 0xff;
+        
+        if (green > threshold)
+        {
+          mmask.set(x,y,0);
+        }
+        else
+        {
+          mmask.set(x,y,255);
+        }
      }
   }
 }
