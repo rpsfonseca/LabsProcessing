@@ -2,8 +2,8 @@ import processing.video.*;
 Movie myMovie;
 float lastTime = 0.0;
 int currentImgCount = 1;
-float sampleRate = 3.0;
-int threshold = 500000;
+float sampleRate = 2.0;
+int threshold = 38000;
 int[] hist1 = new int[256];
 int[] hist2 = new int[256];
 
@@ -11,9 +11,9 @@ int[] hist2 = new int[256];
 boolean inSmooth = false;
 float cummulativeDifference = 0;
 
-int[] framesHistoDif = new int[1000];
+double framesHistoDif = 0.0;
 
-int j = 0;
+int frameCounter = 0;
 
 PrintWriter output;
 
@@ -37,7 +37,15 @@ void setup() {
   currentExercise = Exercise.EXERCISE3;
   
   // Create a new file in the sketch directory
-  output = createWriter("time_indexes.txt"); 
+  if(currentExercise == Exercise.EXERCISE2)
+  {
+    output = createWriter("time_indexes.txt");
+  }
+  if(currentExercise == Exercise.EXERCISE3)
+  {
+    output = createWriter("histo_differences.txt");
+    output.println("Frame   Histogram_Diff   Threshold1   Threshold2");
+  }
 }
 
 void draw()
@@ -49,14 +57,14 @@ void draw()
 void movieEvent(Movie m)
 {
   m.read();
-  
+  frameCounter++;
   switch(currentExercise)
   {
     case EXERCISE1:
       stroboscopic();
       break;
     case EXERCISE2:
-      transition(threshold); // 900000
+      transition(); // 900000
       break; 
     case EXERCISE3:
       transition2();
@@ -70,7 +78,7 @@ void movieEvent(Movie m)
 
 void keyPressed()
 {
-  createList();
+  //createList();
   output.flush(); // Writes the remaining data to the file
   output.close(); // Finishes the file  
   exit(); // Stops the program
@@ -95,7 +103,7 @@ void stroboscopic()
   }
 }
 
-void transition(float threshold)
+void transition()
 {
   PImage newImage = createImage(960, 540, RGB);
   newImage = myMovie.get();
@@ -119,7 +127,7 @@ void transition2()
     
     hist2 = getHisto(newImage);    
     
-    twinComparison(hist1, hist2, 10000, threshold);
+    twinComparison(hist1, hist2, 5000, threshold);
     
     hist1 = hist2; //Update Histograms
 }
@@ -164,10 +172,10 @@ boolean histoDifference(int[] histA, int[] histB, float threshold, int method)
   }
   
   //Save histogram difference
-  framesHistoDif[j] = totalDif;
-  j++;
+  /*framesHistoDif[j] = totalDif;
+  j++;*/
   
-  System.out.println(totalDif);
+  //System.out.println(totalDif);
   if(method == 2)
   {
     if(totalDif < threshold) return true;
@@ -176,7 +184,7 @@ boolean histoDifference(int[] histA, int[] histB, float threshold, int method)
   
   if(totalDif > threshold)
   {
-    
+    framesHistoDif = totalDif;
     return true;
   }
   else return false;
@@ -186,6 +194,10 @@ void twinComparison(int[] histA, int[] histB, float lowerThres, float higherThre
 {
   if(!inSmooth && histoDifference(histA, histB, higherThres, 1))
   {
+    PImage newImage = createImage(960, 540, RGB);
+    newImage = myMovie.get();
+    outputSaving(newImage);
+    output.println(frameCounter + "   " + framesHistoDif + "   " + threshold + "   5000");
     return;
   }
   
@@ -202,7 +214,8 @@ void twinComparison(int[] histA, int[] histB, float lowerThres, float higherThre
     {
       PImage newImage = createImage(960, 540, RGB);
       newImage = myMovie.get();
-      outputSaving(newImage); 
+      outputSaving(newImage);
+    output.println(frameCounter + "   " + cummulativeDifference + "   " + threshold + "   5000");
     }
     inSmooth = false;
     cummulativeDifference = 0.0f;
@@ -221,7 +234,7 @@ float cummulativeDiff(int[] histA, int[] histB, float threshold)
     }
        
   }
-  System.out.println(totalDif);
+  //System.out.println(totalDif);
   
   if(totalDif > threshold) return totalDif;
   else return 0.0f;
@@ -232,7 +245,6 @@ float chiSquared(float valA, float valB)
   return (valA-valB)*(valA-valB)/valA;
 }
 
-<<<<<<< HEAD
 float intersection(float valA, float valB)
 {
   return min(valA, valB);
@@ -242,17 +254,8 @@ void outputSaving(PImage image)
 {
   String frameName = "outputImage_"+ currentImgCount++ +".jpg";
   image.save(frameName);
-  output.println(frameName + " -> " + lastTime);
-=======
-void createList(){
-  output = createWriter("histo_differences.txt"); 
-  
-  output.println("Frame   Histogram_Diff   Threshold1   Threshold2");
-  
-  for(int i = 0; i<515; i++){
-       output.println(i + "   " + framesHistoDif[i]);
-       System.out.println(i);
-        System.out.println(framesHistoDif[i]);
+  if(currentExercise != Exercise.EXERCISE3)
+  {
+    output.println(frameName + " -> " + lastTime);
   }
->>>>>>> 8435c5373cb48e64ac1783a3214eeb03219bd3e1
 }
